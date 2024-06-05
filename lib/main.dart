@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
+import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -20,7 +21,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ChatViewModel())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChatChannelViewModel())
+      ],
       child: MaterialApp(
         title: 'flutter chat',
         theme: ThemeData(
@@ -33,17 +36,108 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
 
   @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<App> {
+  final tempUser1 = {
+    'id': 'user1',
+    'name': 'user1',
+  };
+  final tempUser2 = {
+    'id': 'user2',
+    'name': 'user2',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final chatChannelViewModel =
+          Provider.of<ChatChannelViewModel>(context, listen: false);
+      chatChannelViewModel.fetchChatChannels(tempUser1['id']!);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final chatChannelViewModel = Provider.of<ChatChannelViewModel>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: const Text('Meemong Chat'),
       ),
-      body: const Center(
-        child: Text('Chat'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              if (chatChannelViewModel.isLoading)
+                const CircularProgressIndicator()
+              else
+                ElevatedButton(
+                  onPressed: () async {
+                    await chatChannelViewModel.createChannel(
+                      sendUserId: tempUser1['id']!,
+                      receiveUserId: tempUser2['id']!,
+                    );
+                  },
+                  child: const Text('채널 생성'),
+                ),
+              if (chatChannelViewModel.errorMessage.isNotEmpty)
+                Text(
+                  chatChannelViewModel.errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: chatChannelViewModel.chatChannels.length,
+                  itemBuilder: (context, index) {
+                    final channel = chatChannelViewModel.chatChannels[index];
+
+                    List<String> participants =
+                        List<String>.from(channel['participantsIds']);
+                    String otherUserId =
+                        participants.firstWhere((id) => id != tempUser1['id']);
+                    String otherUserName = otherUserId == tempUser2['id']
+                        ? tempUser2['name']!
+                        : '알수없음';
+
+                    return ListTile(
+                      title: Text(otherUserName),
+                      subtitle: Text('Channel ID: ${channel['channelId']}'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatDetailScreen(
+                              channelId: channel['channelId'],
+                              otherUserName: otherUserName,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              if (chatChannelViewModel.errorMessage.isNotEmpty)
+                Text(
+                  chatChannelViewModel.errorMessage,
+                  style: const TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
