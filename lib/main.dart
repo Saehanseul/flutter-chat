@@ -148,11 +148,10 @@ class _ChatScreenState extends State<App> {
                                 otherUserId == tempUser1['id']
                                     ? tempUser1['name']!
                                     : tempUser2['name']!;
-
                             return ListTile(
                               title: Text(otherUserName),
                               subtitle:
-                                  Text('Channel ID: ${channel['channelId']}'),
+                                  Text('Channel ID: ${channel['lastMessage']}'),
                               onTap: () {
                                 Navigator.push(
                                   context,

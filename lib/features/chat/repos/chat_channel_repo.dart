@@ -50,6 +50,81 @@ class ChatChannelRepo {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getChatChannels(String userId) async {
+    try {
+      QuerySnapshot querySnapshot = await _db
+          .collection('chatChannels')
+          .where('participantsIds', arrayContains: userId)
+          .orderBy('updatedAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    } catch (e) {
+      print('[ChatChannelRepo][getChatChannels] error: $e');
+      return [];
+    }
+  }
+
+  Future<bool> updateChannelWithLastMessage({
+    required String channelId,
+    required String lastMessage,
+    required String lastMessageSenderId,
+  }) async {
+    try {
+      DocumentReference channelRef =
+          _db.collection('chatChannels').doc(channelId);
+      DocumentSnapshot channelSnapshot = await channelRef.get();
+
+      if (!channelSnapshot.exists) {
+        throw Exception('Channel not found');
+      }
+
+      Map<String, dynamic> unreadCounts =
+          Map<String, dynamic>.from(channelSnapshot['unreadCounts']);
+
+      unreadCounts.forEach((userId, count) {
+        if (userId != lastMessageSenderId) {
+          unreadCounts[userId] = count + 1;
+        }
+      });
+
+      await channelRef.update({
+        'lastMessage': lastMessage,
+        'lastMessageSenderId': lastMessageSenderId,
+        'unreadCounts': unreadCounts,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      print('[ChatChannelRepo][updateChannelWithLastMessage] error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateUserUnreadCount({
+    required String channelId,
+    required String userId,
+    required int count,
+  }) async {
+    try {
+      DocumentReference channelRef =
+          _db.collection('chatChannels').doc(channelId);
+
+      await channelRef.update({
+        'unreadCounts.$userId': count,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      print('[ChatChannelRepo][updateUserUnreadCount] error: $e');
+      return false;
+    }
+  }
+
   // block: true - block, false - unblock
   Future<bool> blockChannel({
     required String channelId,
@@ -67,23 +142,6 @@ class ChatChannelRepo {
     } catch (e) {
       print('[ChatChannelRepo][blockChannel] error: $e');
       return false;
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getChatChannels(String userId) async {
-    try {
-      QuerySnapshot querySnapshot = await _db
-          .collection('chatChannels')
-          .where('participantsIds', arrayContains: userId)
-          .orderBy('updatedAt', descending: true)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
-    } catch (e) {
-      print('[ChatChannelRepo][getChatChannels] error: $e');
-      return [];
     }
   }
 }

@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/features/chat/repos/chat_channel_repo.dart';
 import 'package:flutter_chat/features/chat/repos/chat_message_repo.dart';
 
 class ChatMessageViewModel extends ChangeNotifier {
   final ChatMessageRepo _chatMessageRepo = ChatMessageRepo();
+  final ChatChannelRepo _chatChannelRepo = ChatChannelRepo();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -53,7 +55,11 @@ class ChatMessageViewModel extends ChangeNotifier {
     );
     if (isSuccess) {
       _setErrorMessage('');
-      // await fetchMessages(channelId);
+      await _chatChannelRepo.updateChannelWithLastMessage(
+        channelId: channelId,
+        lastMessage: message,
+        lastMessageSenderId: sendUserId,
+      );
     } else {
       _setErrorMessage('Failed to send message');
     }
@@ -98,6 +104,8 @@ class ChatMessageViewModel extends ChangeNotifier {
     );
     if (isSuccess) {
       _setErrorMessage('');
+      await _chatChannelRepo.updateUserUnreadCount(
+          channelId: channelId, userId: userId, count: 0);
     } else {
       _setErrorMessage('Failed to update read status');
     }
