@@ -32,8 +32,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     //       .fetchMessages(widget.channelId);
     // });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ChatMessageViewModel>(context, listen: false)
-          .subscribeToMessages(widget.channelId);
+      final viewModel =
+          Provider.of<ChatMessageViewModel>(context, listen: false);
+      viewModel.subscribeToMessages(widget.channelId);
+      viewModel.updateReadStatus(widget.channelId, widget.sendUserId);
     });
   }
 

@@ -90,6 +90,20 @@ class ChatMessageViewModel extends ChangeNotifier {
     });
   }
 
+  Future<void> updateReadStatus(String channelId, String userId) async {
+    _setLoading(true);
+    bool isSuccess = await _chatMessageRepo.updateReadStatus(
+      channelId: channelId,
+      userId: userId,
+    );
+    if (isSuccess) {
+      _setErrorMessage('');
+    } else {
+      _setErrorMessage('Failed to update read status');
+    }
+    _setLoading(false);
+  }
+
   @override
   void dispose() {
     _messagesSubscription?.cancel();

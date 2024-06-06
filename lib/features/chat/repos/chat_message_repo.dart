@@ -64,28 +64,25 @@ class ChatMessageRepo {
 
   Future<bool> updateReadStatus({
     required String channelId,
-    required String messageId,
     required String userId,
   }) async {
     try {
-      DocumentReference messageRef = _db
+      WriteBatch batch = _db.batch();
+
+      QuerySnapshot querySnapshot = await _db
           .collection('chatChannels')
           .doc(channelId)
           .collection('messages')
-          .doc(messageId);
+          .get();
 
-      await _db.runTransaction((transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(messageRef);
+      for (DocumentSnapshot doc in querySnapshot.docs) {
+        DocumentReference messageRef = doc.reference;
+        batch.update(messageRef, {
+          'readStatus.$userId': true,
+        });
+      }
 
-        if (!snapshot.exists) {
-          throw Exception("Message does not exist!");
-        }
-
-        Map<String, dynamic> readStatus = snapshot.get('readStatus');
-        readStatus[userId] = true;
-
-        transaction.update(messageRef, {'readStatus': readStatus});
-      });
+      await batch.commit();
 
       return true;
     } catch (e) {
