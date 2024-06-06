@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
+import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  HardwareKeyboard.instance.clearState();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -22,7 +24,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ChatChannelViewModel())
+        ChangeNotifierProvider(create: (_) => ChatChannelViewModel()),
+        ChangeNotifierProvider(create: (_) => ChatMessageViewModel()),
       ],
       child: MaterialApp(
         title: 'flutter chat',
@@ -120,6 +123,8 @@ class _ChatScreenState extends State<App> {
                             builder: (context) => ChatDetailScreen(
                               channelId: channel['channelId'],
                               otherUserName: otherUserName,
+                              sendUserId: tempUser1['id']!,
+                              receiveUserId: otherUserId,
                             ),
                           ),
                         );
