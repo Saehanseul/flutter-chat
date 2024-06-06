@@ -26,10 +26,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // 화면이 처음 로드될 때 메시지 목록을 가져옵니다.
+    // // 화면이 처음 로드될 때 메시지 목록을 가져옵니다.
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Provider.of<ChatMessageViewModel>(context, listen: false)
+    //       .fetchMessages(widget.channelId);
+    // });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ChatMessageViewModel>(context, listen: false)
-          .fetchMessages(widget.channelId);
+          .subscribeToMessages(widget.channelId);
     });
   }
 

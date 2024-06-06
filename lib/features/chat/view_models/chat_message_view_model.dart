@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/features/chat/repos/chat_message_repo.dart';
 
@@ -12,6 +15,8 @@ class ChatMessageViewModel extends ChangeNotifier {
 
   List<Map<String, dynamic>> _messages = [];
   List<Map<String, dynamic>> get messages => _messages;
+
+  StreamSubscription<QuerySnapshot>? _messagesSubscription;
 
   void _setLoading(bool value) {
     _isLoading = value;
@@ -48,25 +53,46 @@ class ChatMessageViewModel extends ChangeNotifier {
     );
     if (isSuccess) {
       _setErrorMessage('');
-      await fetchMessages(channelId);
+      // await fetchMessages(channelId);
     } else {
       _setErrorMessage('Failed to send message');
     }
     _setLoading(false);
   }
 
-  Future<void> fetchMessages(String channelId) async {
-    _setLoading(true);
+  // Future<void> fetchMessages(String channelId) async {
+  //   _setLoading(true);
 
-    try {
+  //   try {
+  //     List<Map<String, dynamic>> messages =
+  //         await _chatMessageRepo.getMessages(channelId);
+  //     _setMessages(messages);
+  //     _setErrorMessage('');
+  //   } catch (e) {
+  //     _setErrorMessage('Failed to fetch messages');
+  //   }
+
+  //   _setLoading(false);
+  // }
+
+  void subscribeToMessages(String channelId) {
+    _messagesSubscription?.cancel();
+    _messagesSubscription = FirebaseFirestore.instance
+        .collection('chatChannels')
+        .doc(channelId)
+        .collection('messages')
+        .orderBy('createdAt')
+        .snapshots()
+        .listen((querySnapshot) {
       List<Map<String, dynamic>> messages =
-          await _chatMessageRepo.getMessages(channelId);
+          querySnapshot.docs.map((doc) => doc.data()).toList();
       _setMessages(messages);
-      _setErrorMessage('');
-    } catch (e) {
-      _setErrorMessage('Failed to fetch messages');
-    }
+    });
+  }
 
-    _setLoading(false);
+  @override
+  void dispose() {
+    _messagesSubscription?.cancel();
+    super.dispose();
   }
 }
