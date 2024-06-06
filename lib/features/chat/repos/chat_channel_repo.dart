@@ -14,7 +14,7 @@ class ChatChannelRepo {
     try {
       String channelId = _db.collection('chatChannels').doc().id;
 
-      await _db.collection("chatChannels").add({
+      await _db.collection("chatChannels").doc(channelId).set({
         'channelId': channelId,
         // 'title': channelTitle, // 추후 채널명 필요한 경우 사용, 현재는 상대방 이름
         // 'imagePath': imagePath, // 현재는 상대방 프로필, 추후 채널 이미지 변경시 사용
