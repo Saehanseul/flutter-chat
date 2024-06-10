@@ -148,23 +148,40 @@ class _ChatScreenState extends State<App> {
                                 otherUserId == tempUser1['id']
                                     ? tempUser1['name']!
                                     : tempUser2['name']!;
-                            return ListTile(
-                              title: Text(otherUserName),
-                              subtitle:
-                                  Text('Channel ID: ${channel['lastMessage']}'),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatDetailScreen(
-                                      channelId: channel['channelId'],
-                                      otherUserName: otherUserName,
-                                      sendUserId: currentUser!['id']!,
-                                      receiveUserId: otherUserId,
-                                    ),
-                                  ),
-                                );
+                            return Dismissible(
+                              key: Key(channel['channelId']),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                child: const Icon(Icons.delete),
+                              ),
+                              onDismissed: (direction) {
+                                setState(() {
+                                  chatChannelViewModel.deleteChannel(
+                                      channelId: channel['channelId']);
+                                  chatChannelViewModel.chatChannels
+                                      .removeAt(index);
+                                });
                               },
+                              child: ListTile(
+                                title: Text(otherUserName),
+                                subtitle:
+                                    Text('${channel['lastMessage'] ?? ''}'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatDetailScreen(
+                                        channelId: channel['channelId'],
+                                        otherUserName: otherUserName,
+                                        sendUserId: currentUser!['id']!,
+                                        receiveUserId: otherUserId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),

@@ -144,4 +144,25 @@ class ChatChannelRepo {
       return false;
     }
   }
+
+  Future<bool> deleteChannel({required String channelId}) async {
+    try {
+      // 채널 내의 모든 메시지 삭제 (삭제하지 않는 경우 불필요한 메모리 낭비 발생)
+      QuerySnapshot messagesSnapshot = await _db
+          .collection('chatChannels')
+          .doc(channelId)
+          .collection('messages')
+          .get();
+      for (DocumentSnapshot doc in messagesSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // 채널 삭제
+      await _db.collection("chatChannels").doc(channelId).delete();
+      return true;
+    } catch (e) {
+      print('[ChatChannelRepo][deleteChannel] error: $e');
+      return false;
+    }
+  }
 }

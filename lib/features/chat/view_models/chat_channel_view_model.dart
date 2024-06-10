@@ -72,4 +72,22 @@ class ChatChannelViewModel extends ChangeNotifier {
     }
     _setLoading(false);
   }
+
+  Future<void> deleteChannel({
+    required String channelId,
+  }) async {
+    _setLoading(true);
+    bool isSuccess = await _chatChannelRepo.deleteChannel(
+      channelId: channelId,
+    );
+
+    if (isSuccess) {
+      _chatChannels.removeWhere((channel) => channel['channelId'] == channelId);
+      _setErrorMessage('');
+      notifyListeners();
+    } else {
+      _setErrorMessage('Failed to delete channel');
+    }
+    _setLoading(false);
+  }
 }
