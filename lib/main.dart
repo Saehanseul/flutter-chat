@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
@@ -148,22 +149,36 @@ class _ChatScreenState extends State<App> {
                                 otherUserId == tempUser1['id']
                                     ? tempUser1['name']!
                                     : tempUser2['name']!;
-                            return Dismissible(
+                            return Slidable(
                               key: Key(channel['channelId']),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                color: Colors.red,
-                                alignment: Alignment.centerRight,
-                                child: const Icon(Icons.delete),
+                              endActionPane: ActionPane(
+                                motion: const DrawerMotion(),
+                                children: [
+                                  SlidableAction(
+                                    onPressed: (context) {
+                                      // 핀 고정 로직을 여기에 추가하세요
+                                    },
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.push_pin,
+                                    label: '핀고정',
+                                  ),
+                                  SlidableAction(
+                                    onPressed: (context) {
+                                      setState(() {
+                                        chatChannelViewModel.deleteChannel(
+                                            channelId: channel['channelId']);
+                                        chatChannelViewModel.chatChannels
+                                            .removeAt(index);
+                                      });
+                                    },
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    icon: Icons.delete,
+                                    label: '삭제',
+                                  ),
+                                ],
                               ),
-                              onDismissed: (direction) {
-                                setState(() {
-                                  chatChannelViewModel.deleteChannel(
-                                      channelId: channel['channelId']);
-                                  chatChannelViewModel.chatChannels
-                                      .removeAt(index);
-                                });
-                              },
                               child: ListTile(
                                 title: Text(otherUserName),
                                 subtitle:
