@@ -173,7 +173,7 @@ class _ChatScreenState extends State<App> {
                         ),
                         const SizedBox(height: 20),
                         ListTile(
-                          title: const Text('채팅방 리스트'),
+                          title: const Text('채팅방 리스트 보기'),
                           onTap: () {
                             Navigator.push(
                               context,
