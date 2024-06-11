@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/features/chat/repos/chat_channel_repo.dart';
 
@@ -13,6 +16,8 @@ class ChatChannelViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _chatChannels = [];
   List<Map<String, dynamic>> get chatChannels => _chatChannels;
 
+  StreamSubscription<QuerySnapshot>? _channelsSubscription;
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -20,6 +25,11 @@ class ChatChannelViewModel extends ChangeNotifier {
 
   void _setErrorMessage(String message) {
     _errorMessage = message;
+    notifyListeners();
+  }
+
+  void _setChatChannels(List<Map<String, dynamic>> chatChannels) {
+    _chatChannels = chatChannels;
     notifyListeners();
   }
 
@@ -38,7 +48,7 @@ class ChatChannelViewModel extends ChangeNotifier {
     );
 
     if (channelId != null) {
-      await fetchChatChannels(sendUserId);
+      subscribeToChatChannels(sendUserId);
       _setErrorMessage('');
     } else {
       _setErrorMessage('새 채널 생성 실패');
@@ -46,6 +56,31 @@ class ChatChannelViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
+  void subscribeToChatChannels(String userId) {
+    _setLoading(true);
+
+    _channelsSubscription?.cancel();
+    _channelsSubscription = FirebaseFirestore.instance
+        .collection('chatChannels')
+        .where('participantsIds', arrayContains: userId)
+        .snapshots()
+        .listen((querySnapshot) {
+      List<Map<String, dynamic>> chatChannels =
+          querySnapshot.docs.map((doc) => doc.data()).toList();
+      _setChatChannels(chatChannels);
+      _setLoading(false);
+    }, onError: (error) {
+      _setErrorMessage('Failed to fetch chat channels: $error');
+      _setLoading(false);
+    });
+  }
+
+  void unsubscribeFromChatChannels() {
+    _channelsSubscription?.cancel();
+    _channelsSubscription = null;
+  }
+
+  // subscribe 방식으로 변경하면서 지금은 사용안하지만 추후 사용 로직 변경시 재사용 가능
   Future<void> fetchChatChannels(String userId) async {
     _setLoading(true);
     _chatChannels = await _chatChannelRepo.getChatChannels(userId);
@@ -89,5 +124,11 @@ class ChatChannelViewModel extends ChangeNotifier {
       _setErrorMessage('Failed to delete channel');
     }
     _setLoading(false);
+  }
+
+  @override
+  void dispose() {
+    unsubscribeFromChatChannels();
+    super.dispose();
   }
 }

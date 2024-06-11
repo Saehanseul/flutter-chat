@@ -24,23 +24,23 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
+  ChatMessageViewModel? _viewModel;
 
   @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel =
-          Provider.of<ChatMessageViewModel>(context, listen: false);
-      viewModel.subscribeToMessages(widget.channelId);
-      viewModel.updateReadStatus(widget.channelId, widget.sendUserId);
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_viewModel == null) {
+      _viewModel = Provider.of<ChatMessageViewModel>(context, listen: false);
+      Future.microtask(() {
+        _viewModel!.subscribeToMessages(widget.channelId);
+        _viewModel!.updateReadStatus(widget.channelId, widget.sendUserId);
+      });
+    }
   }
 
   @override
   void dispose() {
-    final viewModel = Provider.of<ChatMessageViewModel>(context, listen: false);
-    viewModel.unsubscribeFromMessages();
+    _viewModel?.unsubscribeFromMessages();
     _messageController.dispose();
 
     super.dispose();
