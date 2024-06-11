@@ -33,7 +33,7 @@ class ChatChannelViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createChannel({
+  Future<String?> createChannel({
     required String sendUserId,
     required String receiveUserId,
     String? channelTitle,
@@ -48,18 +48,21 @@ class ChatChannelViewModel extends ChangeNotifier {
     );
 
     if (channelId != null) {
-      subscribeToChatChannels(sendUserId);
+      await subscribeToChatChannels(sendUserId);
       _setErrorMessage('');
     } else {
       _setErrorMessage('새 채널 생성 실패');
     }
     _setLoading(false);
+    return channelId;
   }
 
-  void subscribeToChatChannels(String userId) {
+  Future<void> subscribeToChatChannels(String userId) async {
     _setLoading(true);
 
     _channelsSubscription?.cancel();
+    Completer<void> completer = Completer<void>();
+
     _channelsSubscription = FirebaseFirestore.instance
         .collection('chatChannels')
         .where('participantsIds', arrayContains: userId)
@@ -70,13 +73,19 @@ class ChatChannelViewModel extends ChangeNotifier {
         List<Map<String, dynamic>> chatChannels =
             querySnapshot.docs.map((doc) => doc.data()).toList();
         _setChatChannels(chatChannels);
+
         _setLoading(false);
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
       },
       onError: (error) {
         _setErrorMessage('채널 패치 실패: $error');
         _setLoading(false);
       },
     );
+
+    return completer.future;
   }
 
   void unsubscribeFromChatChannels() {

@@ -130,10 +130,43 @@ class _ChatScreenState extends State<App> {
                               final chatChannelViewModel =
                                   Provider.of<ChatChannelViewModel>(context,
                                       listen: false);
-                              await chatChannelViewModel.createChannel(
+                              final channelId =
+                                  await chatChannelViewModel.createChannel(
                                 sendUserId: currentUserId!,
                                 receiveUserId: chatUserId,
                               );
+
+                              if (channelId != null) {
+                                final newChannel = chatChannelViewModel
+                                    .chatChannels
+                                    .firstWhere(
+                                  (channel) =>
+                                      channel['participantsIds']
+                                          .contains(chatUserId) &&
+                                      channel['participantsIds']
+                                          .contains(currentUserId),
+                                  orElse: () => {},
+                                );
+
+                                if (newChannel.isNotEmpty) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatDetailScreen(
+                                        channelId: newChannel['channelId'],
+                                        otherUserName: chatUserId,
+                                        sendUserId: currentUserId!,
+                                        receiveUserId: chatUserId,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('채널을 생성하지 못했습니다.')),
+                                  );
+                                }
+                              }
                             }
                           },
                           child: const Text('채팅 시작하기'),
