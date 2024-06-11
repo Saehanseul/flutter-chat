@@ -61,25 +61,10 @@ class ChatMessageViewModel extends ChangeNotifier {
         lastMessageSenderId: sendUserId,
       );
     } else {
-      _setErrorMessage('Failed to send message');
+      _setErrorMessage('메시지 전송 실패');
     }
     _setLoading(false);
   }
-
-  // Future<void> fetchMessages(String channelId) async {
-  //   _setLoading(true);
-
-  //   try {
-  //     List<Map<String, dynamic>> messages =
-  //         await _chatMessageRepo.getMessages(channelId);
-  //     _setMessages(messages);
-  //     _setErrorMessage('');
-  //   } catch (e) {
-  //     _setErrorMessage('Failed to fetch messages');
-  //   }
-
-  //   _setLoading(false);
-  // }
 
   void subscribeToMessages(String channelId) {
     _messagesSubscription?.cancel();
@@ -101,18 +86,40 @@ class ChatMessageViewModel extends ChangeNotifier {
     _messagesSubscription = null;
   }
 
-  Future<void> updateReadStatus(String channelId, String userId) async {
+  /// 현재는 구독 방식으로 바꿔서 사용x 추후 로직 변경시 재사용 가능
+  // Future<void> fetchMessages(String channelId) async {
+  //   _setLoading(true);
+
+  //   try {
+  //     List<Map<String, dynamic>> messages =
+  //         await _chatMessageRepo.getMessages(channelId);
+  //     _setMessages(messages);
+  //     _setErrorMessage('');
+  //   } catch (e) {
+  //     _setErrorMessage('메시지 로드 실패');
+  //   }
+
+  //   _setLoading(false);
+  // }
+
+  Future<void> updateReadStatus({
+    required String channelId,
+    required String userId,
+  }) async {
     _setLoading(true);
+
+    // 해당 채널의 모든 메시지 읽음 처리
     bool isSuccess = await _chatMessageRepo.updateReadStatus(
       channelId: channelId,
       userId: userId,
     );
     if (isSuccess) {
       _setErrorMessage('');
+      // channel의 해당 유저 안읽은 메시지 카운트 0으로 업데이트
       await _chatChannelRepo.updateUserUnreadCount(
           channelId: channelId, userId: userId, count: 0);
     } else {
-      _setErrorMessage('Failed to update read status');
+      _setErrorMessage('읽음 상태 업데이트 실패');
     }
     _setLoading(false);
   }

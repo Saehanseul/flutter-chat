@@ -64,15 +64,18 @@ class ChatChannelViewModel extends ChangeNotifier {
         .collection('chatChannels')
         .where('participantsIds', arrayContains: userId)
         .snapshots()
-        .listen((querySnapshot) {
-      List<Map<String, dynamic>> chatChannels =
-          querySnapshot.docs.map((doc) => doc.data()).toList();
-      _setChatChannels(chatChannels);
-      _setLoading(false);
-    }, onError: (error) {
-      _setErrorMessage('Failed to fetch chat channels: $error');
-      _setLoading(false);
-    });
+        .listen(
+      (querySnapshot) {
+        List<Map<String, dynamic>> chatChannels =
+            querySnapshot.docs.map((doc) => doc.data()).toList();
+        _setChatChannels(chatChannels);
+        _setLoading(false);
+      },
+      onError: (error) {
+        _setErrorMessage('채널 패치 실패: $error');
+        _setLoading(false);
+      },
+    );
   }
 
   void unsubscribeFromChatChannels() {
@@ -80,13 +83,13 @@ class ChatChannelViewModel extends ChangeNotifier {
     _channelsSubscription = null;
   }
 
-  // subscribe 방식으로 변경하면서 지금은 사용안하지만 추후 사용 로직 변경시 재사용 가능
-  Future<void> fetchChatChannels(String userId) async {
-    _setLoading(true);
-    _chatChannels = await _chatChannelRepo.getChatChannels(userId);
-    _setLoading(false);
-    notifyListeners();
-  }
+  // // subscribe 방식으로 변경하면서 지금은 사용안하지만 추후 사용 로직 변경시 재사용 가능
+  // Future<void> fetchChatChannels(String userId) async {
+  //   _setLoading(true);
+  //   _chatChannels = await _chatChannelRepo.getChatChannels(userId);
+  //   _setLoading(false);
+  //   notifyListeners();
+  // }
 
   Future<void> blockChannel({
     required String channelId,
@@ -103,25 +106,21 @@ class ChatChannelViewModel extends ChangeNotifier {
     if (isSuccess) {
       _setErrorMessage('');
     } else {
-      _setErrorMessage('Failed to block channel');
+      _setErrorMessage('채널 차단 실패');
     }
     _setLoading(false);
   }
 
-  Future<void> deleteChannel({
-    required String channelId,
-  }) async {
+  Future<void> deleteChannel(String channelId) async {
     _setLoading(true);
-    bool isSuccess = await _chatChannelRepo.deleteChannel(
-      channelId: channelId,
-    );
+    bool isSuccess = await _chatChannelRepo.deleteChannel(channelId);
 
     if (isSuccess) {
       _chatChannels.removeWhere((channel) => channel['channelId'] == channelId);
       _setErrorMessage('');
       notifyListeners();
     } else {
-      _setErrorMessage('Failed to delete channel');
+      _setErrorMessage('채널 삭제 실패');
     }
     _setLoading(false);
   }

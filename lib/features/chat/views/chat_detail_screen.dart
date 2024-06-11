@@ -33,7 +33,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _viewModel = Provider.of<ChatMessageViewModel>(context, listen: false);
       Future.microtask(() {
         _viewModel!.subscribeToMessages(widget.channelId);
-        _viewModel!.updateReadStatus(widget.channelId, widget.sendUserId);
+        _viewModel!.updateReadStatus(
+            channelId: widget.channelId, userId: widget.sendUserId);
       });
     }
   }

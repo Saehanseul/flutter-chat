@@ -170,7 +170,7 @@ class ChatChannelRepo {
     }
   }
 
-  Future<bool> deleteChannel({required String channelId}) async {
+  Future<bool> deleteChannel(String channelId) async {
     try {
       // 채널 내의 모든 메시지 삭제 (삭제하지 않는 경우 불필요한 메모리 낭비 발생)
       QuerySnapshot messagesSnapshot = await _db

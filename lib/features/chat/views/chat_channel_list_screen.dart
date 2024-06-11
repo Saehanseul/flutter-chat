@@ -79,8 +79,8 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                             SlidableAction(
                               onPressed: (context) {
                                 setState(() {
-                                  chatChannelViewModel.deleteChannel(
-                                      channelId: channel['channelId']);
+                                  chatChannelViewModel
+                                      .deleteChannel(channel['channelId']);
                                   chatChannelViewModel.chatChannels
                                       .removeAt(index);
                                 });
