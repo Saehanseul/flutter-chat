@@ -96,6 +96,11 @@ class ChatMessageViewModel extends ChangeNotifier {
     });
   }
 
+  void unsubscribeFromMessages() {
+    _messagesSubscription?.cancel();
+    _messagesSubscription = null;
+  }
+
   Future<void> updateReadStatus(String channelId, String userId) async {
     _setLoading(true);
     bool isSuccess = await _chatMessageRepo.updateReadStatus(
@@ -114,7 +119,7 @@ class ChatMessageViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _messagesSubscription?.cancel();
+    unsubscribeFromMessages();
     super.dispose();
   }
 }

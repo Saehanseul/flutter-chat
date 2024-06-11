@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
 import 'package:provider/provider.dart';
@@ -26,17 +28,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // // 화면이 처음 로드될 때 메시지 목록을 가져옵니다.
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Provider.of<ChatMessageViewModel>(context, listen: false)
-    //       .fetchMessages(widget.channelId);
-    // });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel =
           Provider.of<ChatMessageViewModel>(context, listen: false);
       viewModel.subscribeToMessages(widget.channelId);
       viewModel.updateReadStatus(widget.channelId, widget.sendUserId);
     });
+  }
+
+  @override
+  void dispose() {
+    final viewModel = Provider.of<ChatMessageViewModel>(context, listen: false);
+    viewModel.unsubscribeFromMessages();
+    _messageController.dispose();
+
+    super.dispose();
   }
 
   @override
