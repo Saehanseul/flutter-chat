@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.flutterChat</string>
+	<string>com.meemong.flutterChat</string>
 	<key>PROJECT_ID</key>
 	<string>flutter-chat-c1381</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:426138807426:ios:fef9f441ac0d5346e6d89b</string>
+	<string>1:426138807426:ios:4f6cf184e51dd07ce6d89b</string>
 </dict>
 </plist>

@@ -70,6 +70,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '426138807426',
     projectId: 'flutter-chat-c1381',
     storageBucket: 'flutter-chat-c1381.appspot.com',
-    iosBundleId: 'com.example.flutterChat',
+    iosBundleId: 'com.meemong.flutterChat',
   );
 }
