@@ -49,31 +49,26 @@ class App extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<App> {
-  final tempUser1 = {
-    'id': 'user1',
-    'name': 'user1',
-  };
-  final tempUser2 = {
-    'id': 'user2',
-    'name': 'user2',
-  };
-
-  Map<String, String>? currentUser;
+  final TextEditingController _userIdController = TextEditingController();
+  final TextEditingController _chatUserIdController = TextEditingController();
+  String? currentUserId;
 
   @override
   void initState() {
     super.initState();
   }
 
-  void setCurrentUser(Map<String, String> user) {
+  void setCurrentUser(String userId) {
     setState(() {
-      currentUser = user;
-      // WidgetsBinding.instance.addPostFrameCallback((_) {
-      //   final chatChannelViewModel =
-      //       Provider.of<ChatChannelViewModel>(context, listen: false);
-      //   chatChannelViewModel.fetchChatChannels(currentUser!['id']!);
-      // });
+      currentUserId = userId;
     });
+  }
+
+  @override
+  void dispose() {
+    _userIdController.dispose();
+    _chatUserIdController.dispose();
+    super.dispose();
   }
 
   @override
@@ -84,52 +79,84 @@ class _ChatScreenState extends State<App> {
       appBar: AppBar(
         title: const Text('Meemong Chat'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    onPressed: () => setCurrentUser(tempUser1),
-                    child: const Text('tempUser1 로그인'),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _userIdController,
+                    decoration: const InputDecoration(
+                      labelText: '로그인할 userId를 입력해주세요.',
+                    ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () => setCurrentUser(tempUser2),
-                    child: const Text('tempUser2 로그인'),
+                    onPressed: () {
+                      if (_userIdController.text.isNotEmpty) {
+                        setCurrentUser(_userIdController.text);
+                      }
+                    },
+                    child: const Text('로그인하기'),
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (currentUser == null)
-                const Text('로그인할 유저를 선택해주세요.')
-              else
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text("현재 로그인한 유저: ${currentUser!['name']}"),
-                      ListTile(
+                  const SizedBox(height: 20),
+                  if (currentUserId == null)
+                    const Text('로그인할 유저를 선택해주세요.')
+                  else
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("현재 로그인한 유저: $currentUserId"),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _chatUserIdController,
+                          decoration: const InputDecoration(
+                            labelText: '채팅할 userId를 입력해주세요.',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final chatUserId = _chatUserIdController.text;
+                            if (chatUserId.isNotEmpty &&
+                                currentUserId != null) {
+                              final chatChannelViewModel =
+                                  Provider.of<ChatChannelViewModel>(context,
+                                      listen: false);
+                              await chatChannelViewModel.createChannel(
+                                sendUserId: currentUserId!,
+                                receiveUserId: chatUserId,
+                              );
+                            }
+                          },
+                          child: const Text('채팅 시작하기'),
+                        ),
+                        const SizedBox(height: 20),
+                        ListTile(
                           title: const Text('채팅방 리스트'),
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatChannelListScreen(
-                                  userId: currentUser!['id']!,
+                                  userId: currentUserId!,
                                 ),
                               ),
                             );
-                          })
-                    ],
-                  ),
-                ),
-            ],
+                          },
+                        )
+                      ],
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
