@@ -125,6 +125,9 @@ class _ChatScreenState extends State<App> {
                                       ? tempUser2['id']!
                                       : tempUser1['id']!,
                             );
+                            /**
+                             * channel 생성 후, 바로 채팅방으로 이동하는 로직 필요시 작성
+                             */
                           },
                           child: const Text('채널 생성'),
                         ),

@@ -31,17 +31,17 @@ class ChatChannelViewModel extends ChangeNotifier {
     String? channelType,
   }) async {
     _setLoading(true);
-    bool isSuccess = await _chatChannelRepo.createChannel(
+    String? channelId = await _chatChannelRepo.createChannel(
       channelTitle: channelTitle,
       sendUserId: sendUserId,
       receiveUserId: receiveUserId,
     );
 
-    if (isSuccess) {
+    if (channelId != null) {
       await fetchChatChannels(sendUserId);
       _setErrorMessage('');
     } else {
-      _setErrorMessage('Failed to create channel');
+      _setErrorMessage('새 채널 생성 실패');
     }
     _setLoading(false);
   }

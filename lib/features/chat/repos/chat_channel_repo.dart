@@ -4,7 +4,7 @@ class ChatChannelRepo {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// 현재: 1:1 채팅만 고려, 추후 여러 유저를 동시 초대시 List<String> receiveUserIds로 변경 가능
-  Future<bool> createChannel({
+  Future<String?> createChannel({
     required String sendUserId,
     required String receiveUserId,
     String? channelTitle,
@@ -12,6 +12,30 @@ class ChatChannelRepo {
     String? channelType,
   }) async {
     try {
+      /** [array-contains] 제약으로 인해 한번의 쿼리로 두개의 arrayContains 조건 불가 */
+      // sendUserId가 포함된 채널들 가져오기
+      QuerySnapshot sendUserChannels = await _db
+          .collection("chatChannels")
+          .where('participantsIds', arrayContains: sendUserId)
+          .get();
+
+      // receiveUserId가 포함된 채널들 가져오기
+      QuerySnapshot receiveUserChannels = await _db
+          .collection("chatChannels")
+          .where('participantsIds', arrayContains: receiveUserId)
+          .get();
+
+      // 두 결과를 클라이언트 측에서 비교하여 기존 채널 찾기
+      for (var sendDoc in sendUserChannels.docs) {
+        for (var receiveDoc in receiveUserChannels.docs) {
+          if (sendDoc.id == receiveDoc.id) {
+            return sendDoc.id;
+          }
+        }
+      }
+      /** [array-contains] */
+
+      /** [기존 채널이 없으면 새로운 채널 생성] */
       String channelId = _db.collection('chatChannels').doc().id;
 
       await _db.collection("chatChannels").doc(channelId).set({
@@ -43,10 +67,11 @@ class ChatChannelRepo {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      return true;
+      return channelId;
+      /** [기존 채널이 없으면 새로운 채널 생성] */
     } catch (e) {
       print('[ChatChannelRepo][createChannel] error: $e');
-      return false;
+      return null;
     }
   }
 
