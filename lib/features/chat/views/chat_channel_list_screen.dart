@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class ChatChannelListScreen extends StatefulWidget {
@@ -33,6 +35,13 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
   void dispose() {
     _viewModel?.unsubscribeFromChatChannels();
     super.dispose();
+  }
+
+  // Timestamp를 포맷팅하는 함수 추가
+  String _formatTimestamp(Timestamp timestamp) {
+    final DateTime dateTime = timestamp.toDate();
+    final DateFormat formatter = DateFormat('MM-dd HH:mm');
+    return formatter.format(dateTime);
   }
 
   @override
@@ -95,6 +104,11 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                         child: ListTile(
                           title: Text(otherUserName),
                           subtitle: Text('${channel['lastMessage'] ?? ''}'),
+                          trailing: Text(
+                            _formatTimestamp(channel['updatedAt']),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                          ),
                           onTap: () {
                             Navigator.push(
                               context,

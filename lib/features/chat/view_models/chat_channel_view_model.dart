@@ -63,6 +63,7 @@ class ChatChannelViewModel extends ChangeNotifier {
     _channelsSubscription = FirebaseFirestore.instance
         .collection('chatChannels')
         .where('participantsIds', arrayContains: userId)
+        .orderBy('updatedAt', descending: true)
         .snapshots()
         .listen(
       (querySnapshot) {
