@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
+import 'package:flutter_chat/features/chat/views/chat_channel_list_screen.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
@@ -67,11 +68,11 @@ class _ChatScreenState extends State<App> {
   void setCurrentUser(Map<String, String> user) {
     setState(() {
       currentUser = user;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final chatChannelViewModel =
-            Provider.of<ChatChannelViewModel>(context, listen: false);
-        chatChannelViewModel.fetchChatChannels(currentUser!['id']!);
-      });
+      // WidgetsBinding.instance.addPostFrameCallback((_) {
+      //   final chatChannelViewModel =
+      //       Provider.of<ChatChannelViewModel>(context, listen: false);
+      //   chatChannelViewModel.fetchChatChannels(currentUser!['id']!);
+      // });
     });
   }
 
@@ -113,105 +114,19 @@ class _ChatScreenState extends State<App> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text("현재 로그인한 유저: ${currentUser!['name']}"),
-                      if (chatChannelViewModel.isLoading)
-                        const CircularProgressIndicator()
-                      else
-                        ElevatedButton(
-                          onPressed: () async {
-                            await chatChannelViewModel.createChannel(
-                              sendUserId: currentUser!['id']!,
-                              receiveUserId:
-                                  currentUser!['id'] == tempUser1['id']
-                                      ? tempUser2['id']!
-                                      : tempUser1['id']!,
-                            );
-                            /**
-                             * channel 생성 후, 바로 채팅방으로 이동하는 로직 필요시 작성
-                             */
-                          },
-                          child: const Text('채널 생성'),
-                        ),
-                      if (chatChannelViewModel.errorMessage.isNotEmpty)
-                        Text(
-                          chatChannelViewModel.errorMessage,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      const SizedBox(height: 20),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: chatChannelViewModel.chatChannels.length,
-                          itemBuilder: (context, index) {
-                            final channel =
-                                chatChannelViewModel.chatChannels[index];
-
-                            List<String> participants =
-                                List<String>.from(channel['participantsIds']);
-                            String otherUserId = participants
-                                .firstWhere((id) => id != currentUser!['id']);
-                            String otherUserName =
-                                otherUserId == tempUser1['id']
-                                    ? tempUser1['name']!
-                                    : tempUser2['name']!;
-                            return Slidable(
-                              key: Key(channel['channelId']),
-                              endActionPane: ActionPane(
-                                motion: const DrawerMotion(),
-                                children: [
-                                  SlidableAction(
-                                    onPressed: (context) {
-                                      // 핀 고정 로직을 여기에 추가하세요
-                                    },
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    icon: Icons.push_pin,
-                                    label: '핀고정',
-                                  ),
-                                  SlidableAction(
-                                    onPressed: (context) {
-                                      setState(() {
-                                        chatChannelViewModel.deleteChannel(
-                                            channelId: channel['channelId']);
-                                        chatChannelViewModel.chatChannels
-                                            .removeAt(index);
-                                      });
-                                    },
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    icon: Icons.delete,
-                                    label: '삭제',
-                                  ),
-                                ],
-                              ),
-                              child: ListTile(
-                                title: Text(otherUserName),
-                                subtitle:
-                                    Text('${channel['lastMessage'] ?? ''}'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ChatDetailScreen(
-                                        channelId: channel['channelId'],
-                                        otherUserName: otherUserName,
-                                        sendUserId: currentUser!['id']!,
-                                        receiveUserId: otherUserId,
-                                      ),
-                                    ),
-                                  );
-                                },
+                      ListTile(
+                          title: const Text('채팅방 리스트'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatChannelListScreen(
+                                  userId: currentUser!['id']!,
+                                ),
                               ),
                             );
-                          },
-                        ),
-                      ),
+                          })
                     ],
-                  ),
-                ),
-              if (chatChannelViewModel.errorMessage.isNotEmpty)
-                Text(
-                  chatChannelViewModel.errorMessage,
-                  style: const TextStyle(
-                    color: Colors.red,
                   ),
                 ),
             ],
