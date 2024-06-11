@@ -118,7 +118,7 @@ class _ChatScreenState extends State<App> {
                         TextField(
                           controller: _chatUserIdController,
                           decoration: const InputDecoration(
-                            labelText: '채팅할 userId를 입력해주세요.',
+                            labelText: '채팅방을 생성할 userId를 입력해주세요.',
                           ),
                         ),
                         const SizedBox(height: 10),

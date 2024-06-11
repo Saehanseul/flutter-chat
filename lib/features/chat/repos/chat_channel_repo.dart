@@ -140,7 +140,7 @@ class ChatChannelRepo {
 
       await channelRef.update({
         'unreadCounts.$userId': count,
-        'updatedAt': FieldValue.serverTimestamp(),
+        // 'updatedAt': FieldValue.serverTimestamp(),
       });
 
       return true;

@@ -105,7 +105,9 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                           title: Text(otherUserName),
                           subtitle: Text('${channel['lastMessage'] ?? ''}'),
                           trailing: Text(
-                            _formatTimestamp(channel['updatedAt']),
+                            channel['updatedAt'] != null
+                                ? _formatTimestamp(channel['updatedAt'])
+                                : '',
                             style: const TextStyle(
                                 color: Colors.grey, fontSize: 12),
                           ),
