@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatMessageRepo {
@@ -42,6 +44,29 @@ class ChatMessageRepo {
       print('[ChatMessageRepo][sendMessage] error: $e');
       return false;
     }
+  }
+
+  StreamSubscription<QuerySnapshot> subscribeToMessages({
+    required String channelId,
+    required Function(List<Map<String, dynamic>>) onData,
+    required Function(String) onError,
+  }) {
+    return FirebaseFirestore.instance
+        .collection('chatChannels')
+        .doc(channelId)
+        .collection('messages')
+        .orderBy('createdAt')
+        .snapshots()
+        .listen(
+      (querySnapshot) {
+        List<Map<String, dynamic>> messages =
+            querySnapshot.docs.map((doc) => doc.data()).toList();
+        onData(messages);
+      },
+      onError: (error) {
+        onError('메시지 패치 실패: $error');
+      },
+    );
   }
 
   Future<List<Map<String, dynamic>>> getMessages(String channelId) async {

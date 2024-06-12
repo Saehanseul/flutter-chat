@@ -75,18 +75,20 @@ class ChatMessageViewModel extends ChangeNotifier {
   }
 
   void subscribeToMessages(String channelId) {
+    _setLoading(true);
+
     _messagesSubscription?.cancel();
-    _messagesSubscription = FirebaseFirestore.instance
-        .collection('chatChannels')
-        .doc(channelId)
-        .collection('messages')
-        .orderBy('createdAt')
-        .snapshots()
-        .listen((querySnapshot) {
-      List<Map<String, dynamic>> messages =
-          querySnapshot.docs.map((doc) => doc.data()).toList();
-      _setMessages(messages);
-    });
+    _messagesSubscription = _chatMessageRepo.subscribeToMessages(
+      channelId: channelId,
+      onData: (messages) {
+        _setMessages(messages);
+        _setLoading(false);
+      },
+      onError: (error) {
+        _setErrorMessage(error);
+        _setLoading(false);
+      },
+    );
   }
 
   void unsubscribeFromMessages() {

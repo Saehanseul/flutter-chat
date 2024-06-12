@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatChannelRepo {
@@ -73,6 +75,29 @@ class ChatChannelRepo {
       print('[ChatChannelRepo][createChannel] error: $e');
       return null;
     }
+  }
+
+  /// 해당 유저가 참여한 모든 채널 리스트 구독
+  StreamSubscription<QuerySnapshot> subscribeToChatChannels({
+    required String userId,
+    required Function(List<Map<String, dynamic>>) onData,
+    required Function(String) onError,
+  }) {
+    return FirebaseFirestore.instance
+        .collection('chatChannels')
+        .where('participantsIds', arrayContains: userId)
+        .orderBy('updatedAt', descending: true)
+        .snapshots()
+        .listen(
+      (querySnapshot) {
+        List<Map<String, dynamic>> chatChannels =
+            querySnapshot.docs.map((doc) => doc.data()).toList();
+        onData(chatChannels);
+      },
+      onError: (error) {
+        onError('채널 패치 실패: $error');
+      },
+    );
   }
 
   /// 해당 유저가 참여한 모든 채널 리스트 가져오기

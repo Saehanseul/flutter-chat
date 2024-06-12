@@ -57,30 +57,24 @@ class ChatChannelViewModel extends ChangeNotifier {
     return channelId;
   }
 
+  /// 해당 유저가 참여한 모든 채널 구독
   Future<void> subscribeToChatChannels(String userId) async {
     _setLoading(true);
 
     _channelsSubscription?.cancel();
     Completer<void> completer = Completer<void>();
 
-    _channelsSubscription = FirebaseFirestore.instance
-        .collection('chatChannels')
-        .where('participantsIds', arrayContains: userId)
-        .orderBy('updatedAt', descending: true)
-        .snapshots()
-        .listen(
-      (querySnapshot) {
-        List<Map<String, dynamic>> chatChannels =
-            querySnapshot.docs.map((doc) => doc.data()).toList();
+    _channelsSubscription = _chatChannelRepo.subscribeToChatChannels(
+      userId: userId,
+      onData: (chatChannels) {
         _setChatChannels(chatChannels);
-
         _setLoading(false);
         if (!completer.isCompleted) {
           completer.complete();
         }
       },
       onError: (error) {
-        _setErrorMessage('채널 패치 실패: $error');
+        _setErrorMessage(error);
         _setLoading(false);
       },
     );
