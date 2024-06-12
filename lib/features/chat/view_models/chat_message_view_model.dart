@@ -35,6 +35,7 @@ class ChatMessageViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 메시지 전송
   Future<void> sendMessage({
     required String channelId,
     required String sendUserId,
@@ -44,6 +45,13 @@ class ChatMessageViewModel extends ChangeNotifier {
     List<String>? metaPathList,
   }) async {
     _setLoading(true);
+
+    // 채널 차단 여부 확인
+    bool? isBlocked = await _chatChannelRepo.isChannelBlocked(channelId);
+    if (isBlocked != false) {
+      _setLoading(false);
+      return;
+    }
 
     bool isSuccess = await _chatMessageRepo.sendMessage(
       channelId: channelId,

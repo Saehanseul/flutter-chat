@@ -5,6 +5,7 @@ import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.d
 import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
 import 'package:flutter_chat/features/chat/views/chat_channel_list_screen.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
+import 'package:flutter_chat/utils.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -149,6 +150,9 @@ class _ChatScreenState extends State<App> {
                                 );
 
                                 if (newChannel.isNotEmpty) {
+                                  bool isBlocked = isAnyUserBlocked(
+                                      newChannel['blockedUsers']);
+
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -157,6 +161,7 @@ class _ChatScreenState extends State<App> {
                                         otherUserName: chatUserId,
                                         sendUserId: currentUserId!,
                                         receiveUserId: chatUserId,
+                                        isBlocked: isBlocked,
                                       ),
                                     ),
                                   );

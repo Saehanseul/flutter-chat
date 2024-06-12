@@ -115,6 +115,7 @@ class ChatChannelViewModel extends ChangeNotifier {
 
     if (isSuccess) {
       _setErrorMessage('');
+      notifyListeners();
     } else {
       _setErrorMessage('채널 차단 실패');
     }

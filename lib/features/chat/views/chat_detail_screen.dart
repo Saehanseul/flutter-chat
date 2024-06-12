@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -9,13 +10,15 @@ class ChatDetailScreen extends StatefulWidget {
   final String otherUserName;
   final String sendUserId;
   final String receiveUserId;
+  bool isBlocked;
 
-  const ChatDetailScreen({
+  ChatDetailScreen({
     super.key,
     required this.channelId,
     required this.otherUserName,
     required this.sendUserId,
     required this.receiveUserId,
+    required this.isBlocked,
   });
 
   @override
@@ -51,7 +54,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat with ${widget.otherUserName}'),
+        title: Text('${widget.otherUserName}님과 채팅'),
+        actions: [
+          TextButton(
+            child: Text(widget.isBlocked ? '차단 해제' : '차단'),
+            onPressed: () {
+              ChatChannelViewModel? channelViewModel =
+                  Provider.of<ChatChannelViewModel>(context, listen: false);
+
+              channelViewModel.blockChannel(
+                channelId: widget.channelId,
+                userId: widget.sendUserId,
+                block: !widget.isBlocked,
+              );
+              if (channelViewModel.errorMessage.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      widget.isBlocked ? '사용자가 차단 해제되었습니다.' : '사용자가 차단되었습니다.',
+                    ),
+                  ),
+                );
+                setState(() {
+                  widget.isBlocked = !widget.isBlocked;
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('실패: ${channelViewModel.errorMessage}')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -68,7 +103,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 }
 
                 if (viewModel.messages.isEmpty) {
-                  return const Center(child: Text('No messages yet'));
+                  return const Center(child: Text('첫 대화를 시작해보세요'));
                 }
 
                 return ListView.builder(

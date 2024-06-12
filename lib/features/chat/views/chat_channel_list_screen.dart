@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/features/chat/view_models/chat_channel_view_model.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
+import 'package:flutter_chat/utils.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -112,6 +113,8 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                                 color: Colors.grey, fontSize: 12),
                           ),
                           onTap: () {
+                            bool isBlocked =
+                                isAnyUserBlocked(channel['blockedUsers']);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -120,6 +123,7 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                                   otherUserName: otherUserName,
                                   sendUserId: widget.userId,
                                   receiveUserId: otherUserId,
+                                  isBlocked: isBlocked,
                                 ),
                               ),
                             );

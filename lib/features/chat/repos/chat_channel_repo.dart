@@ -75,6 +75,8 @@ class ChatChannelRepo {
     }
   }
 
+  /// 해당 유저가 참여한 모든 채널 리스트 가져오기
+  /// 현재는 subscribe로 대체하면서 사용하지 않음
   Future<List<Map<String, dynamic>>> getChatChannels(String userId) async {
     try {
       QuerySnapshot querySnapshot = await _db
@@ -92,6 +94,7 @@ class ChatChannelRepo {
     }
   }
 
+  /// 유저가 채널에 메시지 발송시 channel의 lastMessage, lastMessageSenderId, unreadCounts 업데이트
   Future<bool> updateChannelWithLastMessage({
     required String channelId,
     required String lastMessage,
@@ -129,10 +132,12 @@ class ChatChannelRepo {
     }
   }
 
+  /// 특정 유저의 특정 채널의 unreadCount를 업데이트
+  /// 지금은 해당 채널 진입시 기존 unreadCount를 0으로 초기화 용도로 사용
   Future<bool> updateUserUnreadCount({
     required String channelId,
     required String userId,
-    required int count,
+    int count = 0,
   }) async {
     try {
       DocumentReference channelRef =
@@ -150,7 +155,9 @@ class ChatChannelRepo {
     }
   }
 
-  // block: true - block, false - unblock
+  /// 채널 차단 / 해제
+  /// 차단 block: true, 해제 block: false
+  /// return 성공: true, 실패: false
   Future<bool> blockChannel({
     required String channelId,
     required String userId,
@@ -167,6 +174,27 @@ class ChatChannelRepo {
     } catch (e) {
       print('[ChatChannelRepo][blockChannel] error: $e');
       return false;
+    }
+  }
+
+  /// 채널 차단 여부 확인
+  /// return 차단 된 경우: true, 차단되지 않은 경우: false, 에러 발생: null
+  Future<bool?> isChannelBlocked(String channelId) async {
+    try {
+      DocumentSnapshot channelSnapshot =
+          await _db.collection('chatChannels').doc(channelId).get();
+
+      if (!channelSnapshot.exists) {
+        throw Exception('Channel not found');
+      }
+
+      Map<String, dynamic> blockedUsers =
+          channelSnapshot['blockedUsers'] as Map<String, dynamic>;
+
+      return blockedUsers.values.any((user) => user['isBlocked'] == true);
+    } catch (e) {
+      print('[ChatChannelRepo][isChannelBlocked] error: $e');
+      return null;
     }
   }
 
