@@ -33,6 +33,9 @@ class ChatChannelViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 채널 생성
+  /// 현재는 sendUserId, receiveUserId 2개만 사용하여 생성 가능
+  /// 비즈니스 로직에 따라 title, imagePath, channelType 등 추가 가능
   Future<String?> createChannel({
     required String sendUserId,
     required String receiveUserId,
@@ -82,6 +85,7 @@ class ChatChannelViewModel extends ChangeNotifier {
     return completer.future;
   }
 
+  /// 채널 구독 취소
   void unsubscribeFromChatChannels() {
     _channelsSubscription?.cancel();
     _channelsSubscription = null;
@@ -95,6 +99,7 @@ class ChatChannelViewModel extends ChangeNotifier {
   //   notifyListeners();
   // }
 
+  /// 채널 차단
   Future<void> blockChannel({
     required String channelId,
     required String userId,
@@ -116,6 +121,7 @@ class ChatChannelViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
+  /// 채널 삭제
   Future<void> deleteChannel(String channelId) async {
     _setLoading(true);
     bool isSuccess = await _chatChannelRepo.deleteChannel(channelId);

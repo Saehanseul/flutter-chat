@@ -36,6 +36,9 @@ class ChatMessageViewModel extends ChangeNotifier {
   }
 
   /// 메시지 전송
+  /// 현재는 text message만 고려
+  /// 추후 비즈니스 로직에 따라 messageType 으로 image, file 등 추가 가능
+  /// metaPathList: 이미지, 파일 전송시 사용
   Future<void> sendMessage({
     required String channelId,
     required String sendUserId,
@@ -74,6 +77,7 @@ class ChatMessageViewModel extends ChangeNotifier {
     _setLoading(false);
   }
 
+  /// 현재 참여한 채널의 메시지 구독
   void subscribeToMessages(String channelId) {
     _setLoading(true);
 
@@ -91,15 +95,16 @@ class ChatMessageViewModel extends ChangeNotifier {
     );
   }
 
+  /// 메시지 구독 취소
   void unsubscribeFromMessages() {
     _messagesSubscription?.cancel();
     _messagesSubscription = null;
   }
 
-  /// 현재는 구독 방식으로 바꿔서 사용x 추후 로직 변경시 재사용 가능
+  // 현재는 구독 방식으로 바꿔서 사용x 추후 로직 변경시 재사용 가능
   // Future<void> fetchMessages(String channelId) async {
   //   _setLoading(true);
-
+  //
   //   try {
   //     List<Map<String, dynamic>> messages =
   //         await _chatMessageRepo.getMessages(channelId);
@@ -108,10 +113,13 @@ class ChatMessageViewModel extends ChangeNotifier {
   //   } catch (e) {
   //     _setErrorMessage('메시지 로드 실패');
   //   }
-
+  //
   //   _setLoading(false);
   // }
 
+  /// 메시지 읽음 처리
+  /// 해당 채널의 모든 메시지 읽음 처리 (해당 channel의 messages의 해당 유저의 모든 readStatus 업데이트)
+  /// channel의 해당 유저 안읽은 메시지 카운트 0으로 업데이트
   Future<void> updateReadStatus({
     required String channelId,
     required String userId,

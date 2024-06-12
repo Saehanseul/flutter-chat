@@ -5,6 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ChatMessageRepo {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  /// 메시지 전송
+  /// 메시지 전송 성공시 true 반환
+  /// 메시지 전송 실패시 false 반환
   Future<bool> sendMessage({
     required String channelId,
     required String sendUserId,
@@ -46,6 +49,8 @@ class ChatMessageRepo {
     }
   }
 
+  /// 해당 채널의 모든 메시지 구독
+  /// 채널의 메시지가 추가되면 onData 호출
   StreamSubscription<QuerySnapshot> subscribeToMessages({
     required String channelId,
     required Function(List<Map<String, dynamic>>) onData,
@@ -69,6 +74,8 @@ class ChatMessageRepo {
     );
   }
 
+  /// 해당 채널의 모든 메시지 가져오기
+  /// 현재는 subscribe로 대체하면서 사용하지 않음
   Future<List<Map<String, dynamic>>> getMessages(String channelId) async {
     try {
       QuerySnapshot querySnapshot = await _db
@@ -87,6 +94,9 @@ class ChatMessageRepo {
     }
   }
 
+  /// 메시지 읽음 상태 업데이트
+  /// 해당 채널의 모든 메시지를 읽음 처리
+  /// 읽음 처리 성공시 true 반환 / 실패시 false 반환
   Future<bool> updateReadStatus({
     required String channelId,
     required String userId,

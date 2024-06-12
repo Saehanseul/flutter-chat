@@ -78,6 +78,7 @@ class ChatChannelRepo {
   }
 
   /// 해당 유저가 참여한 모든 채널 리스트 구독
+  /// 채널이 추가되면 onData 호출
   StreamSubscription<QuerySnapshot> subscribeToChatChannels({
     required String userId,
     required Function(List<Map<String, dynamic>>) onData,
@@ -158,7 +159,7 @@ class ChatChannelRepo {
   }
 
   /// 특정 유저의 특정 채널의 unreadCount를 업데이트
-  /// 지금은 해당 채널 진입시 기존 unreadCount를 0으로 초기화 용도로 사용
+  /// 업데이트 성공시 true, 실패시 false
   Future<bool> updateUserUnreadCount({
     required String channelId,
     required String userId,
@@ -181,8 +182,7 @@ class ChatChannelRepo {
   }
 
   /// 채널 차단 / 해제
-  /// 차단 block: true, 해제 block: false
-  /// return 성공: true, 실패: false
+  /// 차단 여부 업데이트 성공시 true, 실패시 false
   Future<bool> blockChannel({
     required String channelId,
     required String userId,
@@ -203,7 +203,7 @@ class ChatChannelRepo {
   }
 
   /// 채널 차단 여부 확인
-  /// return 차단 된 경우: true, 차단되지 않은 경우: false, 에러 발생: null
+  /// 차단된 경우 true, 차단되지 않은 경우 false
   Future<bool?> isChannelBlocked(String channelId) async {
     try {
       DocumentSnapshot channelSnapshot =
@@ -223,6 +223,9 @@ class ChatChannelRepo {
     }
   }
 
+  /// 채널 삭제
+  /// 채널 삭제시 우선 해당 채널의 subCollection messages 삭제 후 채널 삭제
+  /// 삭제 성공시 true, 실패시 false
   Future<bool> deleteChannel(String channelId) async {
     try {
       // 채널 내의 모든 메시지 삭제 (삭제하지 않는 경우 불필요한 메모리 낭비 발생)
