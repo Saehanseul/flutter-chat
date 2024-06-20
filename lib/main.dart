@@ -6,9 +6,9 @@ import 'package:flutter_chat/features/chat/view_models/chat_message_view_model.d
 import 'package:flutter_chat/features/chat/views/chat_channel_list_screen.dart';
 import 'package:flutter_chat/features/chat/views/chat_detail_screen.dart';
 import 'package:flutter_chat/utils.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'package:badges/badges.dart' as badges;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +63,7 @@ class _ChatScreenState extends State<App> {
     setState(() {
       currentUserId = userId;
     });
+    fetchTotalUnreadCount(userId);
   }
 
   @override
@@ -70,6 +71,12 @@ class _ChatScreenState extends State<App> {
     _userIdController.dispose();
     _chatUserIdController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchTotalUnreadCount(String userId) async {
+    final chatChannelViewModel =
+        Provider.of<ChatChannelViewModel>(context, listen: false);
+    await chatChannelViewModel.calculateTotalUnreadCount(userId);
   }
 
   @override
@@ -179,6 +186,23 @@ class _ChatScreenState extends State<App> {
                         const SizedBox(height: 20),
                         ListTile(
                           title: const Text('채팅방 리스트 보기'),
+                          trailing: currentUserId != null
+                              ? Consumer<ChatChannelViewModel>(
+                                  builder: (context, viewModel, child) {
+                                    return badges.Badge(
+                                      badgeContent: Text(
+                                        '${viewModel.totalUnreadCount}',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                      badgeStyle: const badges.BadgeStyle(
+                                        badgeColor: Colors.red,
+                                        padding: EdgeInsets.all(6),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : null,
                           onTap: () {
                             Navigator.push(
                               context,

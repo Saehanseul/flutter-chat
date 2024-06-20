@@ -16,6 +16,9 @@ class ChatChannelViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _chatChannels = [];
   List<Map<String, dynamic>> get chatChannels => _chatChannels;
 
+  int _totalUnreadCount = 0;
+  int get totalUnreadCount => _totalUnreadCount;
+
   StreamSubscription<QuerySnapshot>? _channelsSubscription;
 
   void _setLoading(bool value) {
@@ -31,6 +34,22 @@ class ChatChannelViewModel extends ChangeNotifier {
   void _setChatChannels(List<Map<String, dynamic>> chatChannels) {
     _chatChannels = chatChannels;
     notifyListeners();
+  }
+
+  void _setTotalUnreadCount(int count) {
+    _totalUnreadCount = count;
+    notifyListeners();
+  }
+
+  //subscribe에서 구독시 내부적으로 전체 unreadCount 계산
+  void _calculateTotalUnreadCount(String userId) {
+    int totalUnreadCount = 0;
+    for (var channel in _chatChannels) {
+      if (channel['unreadCounts'][userId] != null) {
+        totalUnreadCount += (channel['unreadCounts'][userId] as num).toInt();
+      }
+    }
+    _setTotalUnreadCount(totalUnreadCount);
   }
 
   /// 채널 생성
@@ -71,6 +90,7 @@ class ChatChannelViewModel extends ChangeNotifier {
       userId: userId,
       onData: (chatChannels) {
         _setChatChannels(chatChannels);
+        _calculateTotalUnreadCount(userId);
         _setLoading(false);
         if (!completer.isCompleted) {
           completer.complete();
@@ -117,6 +137,20 @@ class ChatChannelViewModel extends ChangeNotifier {
       notifyListeners();
     } else {
       _setErrorMessage('채널 차단 실패');
+    }
+    _setLoading(false);
+  }
+
+  // 리스트 화면접근 해서 구독하기 전 홈화면에서 전체 unreadCount 보여주기
+  // 홈화면에서 구독하게 되면 필요 없음 (구독하지 않은 경우 전체 unreadCount 보기위해 만든 함수)
+  Future<void> calculateTotalUnreadCount(String userId) async {
+    _setLoading(true);
+    try {
+      int unreadCount = await _chatChannelRepo.getTotalUnreadCount(userId);
+      _setTotalUnreadCount(unreadCount);
+      _setErrorMessage('');
+    } catch (e) {
+      _setErrorMessage('총 unread count 가져오기 실패');
     }
     _setLoading(false);
   }

@@ -223,6 +223,31 @@ class ChatChannelRepo {
     }
   }
 
+  /// 특정 유저의 모든 채널에서 unreadCount의 합산을 가져오기
+  Future<int> getTotalUnreadCount(String userId) async {
+    try {
+      // 해당 유저가 포함된 채널들을 가져오기
+      QuerySnapshot querySnapshot = await _db
+          .collection('chatChannels')
+          .where('participantsIds', arrayContains: userId)
+          .get();
+
+      int totalUnreadCount = 0;
+
+      // 각 채널의 unreadCount를 합산
+      for (var doc in querySnapshot.docs) {
+        Map<String, dynamic> unreadCounts =
+            Map<String, dynamic>.from(doc['unreadCounts']);
+        totalUnreadCount += (unreadCounts[userId] as num).toInt();
+      }
+
+      return totalUnreadCount;
+    } catch (e) {
+      print('[ChatChannelRepo][getTotalUnreadCount] error: $e');
+      return 0;
+    }
+  }
+
   /// 채널 삭제
   /// 채널 삭제시 우선 해당 채널의 subCollection messages 삭제 후 채널 삭제
   /// 삭제 성공시 true, 실패시 false

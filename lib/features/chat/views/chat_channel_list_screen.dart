@@ -6,6 +6,7 @@ import 'package:flutter_chat/utils.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:badges/badges.dart' as badges;
 
 class ChatChannelListScreen extends StatefulWidget {
   final String userId;
@@ -105,12 +106,39 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                         child: ListTile(
                           title: Text(otherUserName),
                           subtitle: Text('${channel['lastMessage'] ?? ''}'),
-                          trailing: Text(
-                            channel['updatedAt'] != null
-                                ? _formatTimestamp(channel['updatedAt'])
-                                : '',
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                          trailing: SizedBox(
+                            width: 120,
+                            height: 40,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  channel['updatedAt'] != null
+                                      ? _formatTimestamp(channel['updatedAt'])
+                                      : '',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                if (channel['unreadCounts'][widget.userId] > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: badges.Badge(
+                                      badgeContent: Text(
+                                        '${channel['unreadCounts'][widget.userId]}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      badgeStyle: const badges.BadgeStyle(
+                                        badgeColor: Colors.red,
+                                        padding: EdgeInsets.all(6),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                           onTap: () {
                             bool isBlocked =
