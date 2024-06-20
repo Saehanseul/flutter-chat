@@ -52,6 +52,30 @@ class ChatChannelViewModel extends ChangeNotifier {
     _setTotalUnreadCount(totalUnreadCount);
   }
 
+  // 채널 목록 정렬
+  void _sortChatChannels(String userId) {
+    _chatChannels.sort((a, b) {
+      bool aPinned = a['pinnedBy']?.containsKey(userId) ?? false;
+      bool bPinned = b['pinnedBy']?.containsKey(userId) ?? false;
+
+      if (aPinned && bPinned) {
+        Timestamp? aPinnedAt = a['pinnedBy'][userId];
+        Timestamp? bPinnedAt = b['pinnedBy'][userId];
+        return (bPinnedAt ?? Timestamp(0, 0))
+            .compareTo(aPinnedAt ?? Timestamp(0, 0)); // 최신 핀 고정 순으로 정렬
+      } else if (aPinned) {
+        return -1; // a가 고정된 채널이면 앞으로
+      } else if (bPinned) {
+        return 1; // b가 고정된 채널이면 앞으로
+      } else {
+        Timestamp? aUpdatedAt = a['updatedAt'];
+        Timestamp? bUpdatedAt = b['updatedAt'];
+        return (bUpdatedAt ?? Timestamp(0, 0))
+            .compareTo(aUpdatedAt ?? Timestamp(0, 0)); // 최신 메시지 순으로 정렬
+      }
+    });
+  }
+
   /// 채널 생성
   /// 현재는 sendUserId, receiveUserId 2개만 사용하여 생성 가능
   /// 비즈니스 로직에 따라 title, imagePath, channelType 등 추가 가능
@@ -91,6 +115,7 @@ class ChatChannelViewModel extends ChangeNotifier {
       onData: (chatChannels) {
         _setChatChannels(chatChannels);
         _calculateTotalUnreadCount(userId);
+        _sortChatChannels(userId);
         _setLoading(false);
         if (!completer.isCompleted) {
           completer.complete();
@@ -151,6 +176,38 @@ class ChatChannelViewModel extends ChangeNotifier {
       _setErrorMessage('');
     } catch (e) {
       _setErrorMessage('총 unread count 가져오기 실패');
+    }
+    _setLoading(false);
+  }
+
+  /// 채널 핀 고정
+  Future<void> pinChannel(String channelId, String userId) async {
+    _setLoading(true);
+    bool isSuccess = await _chatChannelRepo.pinChannel(
+      channelId: channelId,
+      userId: userId,
+    );
+
+    if (isSuccess) {
+      _setErrorMessage('');
+    } else {
+      _setErrorMessage('채널 핀 고정 실패');
+    }
+    _setLoading(false);
+  }
+
+  /// 채널 핀 고정 해제
+  Future<void> unpinChannel(String channelId, String userId) async {
+    _setLoading(true);
+    bool isSuccess = await _chatChannelRepo.unpinChannel(
+      channelId: channelId,
+      userId: userId,
+    );
+
+    if (isSuccess) {
+      _setErrorMessage('');
+    } else {
+      _setErrorMessage('채널 핀 고정 해제 실패');
     }
     _setLoading(false);
   }

@@ -248,6 +248,38 @@ class ChatChannelRepo {
     }
   }
 
+  /// 채널 핀 고정
+  Future<bool> pinChannel({
+    required String channelId,
+    required String userId,
+  }) async {
+    try {
+      await _db.collection("chatChannels").doc(channelId).update({
+        'pinnedBy.$userId': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      print('[ChatChannelRepo][pinChannel] error: $e');
+      return false;
+    }
+  }
+
+  /// 채널 핀 고정 해제
+  Future<bool> unpinChannel({
+    required String channelId,
+    required String userId,
+  }) async {
+    try {
+      await _db.collection("chatChannels").doc(channelId).update({
+        'pinnedBy.$userId': FieldValue.delete(),
+      });
+      return true;
+    } catch (e) {
+      print('[ChatChannelRepo][unpinChannel] error: $e');
+      return false;
+    }
+  }
+
   /// 채널 삭제
   /// 채널 삭제시 우선 해당 채널의 subCollection messages 삭제 후 채널 삭제
   /// 삭제 성공시 true, 실패시 false

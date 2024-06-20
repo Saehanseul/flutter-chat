@@ -39,7 +39,7 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
     super.dispose();
   }
 
-  // Timestamp를 포맷팅하는 함수 추가
+  // Timestamp 포맷팅
   String _formatTimestamp(Timestamp timestamp) {
     final DateTime dateTime = timestamp.toDate();
     final DateFormat formatter = DateFormat('MM-dd HH:mm');
@@ -73,6 +73,10 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                           participants.firstWhere((id) => id != widget.userId);
                       String otherUserName = otherUserId; // 필요 시 이름 맵핑 로직 추가
 
+                      bool isPinned =
+                          channel['pinnedBy']?.containsKey(widget.userId) ??
+                              false;
+
                       return Slidable(
                         key: Key(channel['channelId']),
                         endActionPane: ActionPane(
@@ -80,12 +84,21 @@ class _ChatChannelListScreenState extends State<ChatChannelListScreen> {
                           children: [
                             SlidableAction(
                               onPressed: (context) {
-                                // 핀 고정 로직을 여기에 추가하세요
+                                if (isPinned) {
+                                  chatChannelViewModel.unpinChannel(
+                                      channel['channelId'], widget.userId);
+                                } else {
+                                  chatChannelViewModel.pinChannel(
+                                      channel['channelId'], widget.userId);
+                                }
                               },
-                              backgroundColor: Colors.blue,
+                              backgroundColor:
+                                  isPinned ? Colors.green : Colors.blue,
                               foregroundColor: Colors.white,
-                              icon: Icons.push_pin,
-                              label: '핀고정',
+                              icon: isPinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                              label: isPinned ? '해제' : '핀고정',
                             ),
                             SlidableAction(
                               onPressed: (context) {
